@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="3a13a2d4-bc6d-4236-9986-b26aac6c6fb8" basePath="/api/v1" >
+		<http:request-connection host="dev-169167.okta.com" protocol="HTTPS">
+		</http:request-connection>
+	</http:request-config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9579a9f8-6bd2-46fa-9d7f-7760117adc6a" >
+		<http:listener-connection host="localhost" port="8082" />
+	</http:listener-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="d9b021ed-abb2-41a9-8ca5-b1291148cadc" >
+		<file:connection workingDir="C:\Users\Administrator\Desktop" />
+	</file:config>
+	<flow name="oktaFlow" doc:id="448e02a0-b542-412d-a5ce-ed7c20ae0ef9" >
+		<http:listener doc:name="Listener" doc:id="22cdd067-4f2d-4d02-ae18-10f942818e81" config-ref="HTTP_Listener_config" path="/"/>
+		<http:request method="GET" doc:name="Request" doc:id="ccd3d216-32b6-497f-9d94-6698f7d541ca" config-ref="HTTP_Request_configuration" path="/users">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "SSWS 00vg2Ny78QQGBm8_MmnUr2H0jEjPsIHEDXNyJCnJK2 ",
+	"Accept" : "application/Json",
+	"Content-Type" : "application/Json"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="12fd2013-28d6-434a-890a-883764f4eb96" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="de5e66b7-e0b9-4dc9-b425-7cf0f7eecfde">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="bce670f1-29f4-4400-b35a-3ba3b594f484" config-ref="File_Config" path="baroks file/okta.json"/>
+	</flow>
+</mule>
